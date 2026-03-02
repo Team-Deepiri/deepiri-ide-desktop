@@ -34,6 +34,7 @@ function createWindow() {
     height: 900,
     minWidth: 1000,
     minHeight: 600,
+    title: 'Deepiri IDE',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
