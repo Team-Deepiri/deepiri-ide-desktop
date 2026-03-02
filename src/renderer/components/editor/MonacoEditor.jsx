@@ -47,7 +47,9 @@ export default function MonacoEditor({
   onSelectionChange,
   onSymbolsChange,
   onEditorReady,
+  onProblemsChange,
   theme = 'vs-dark',
+  fontSize = 14,
   options = {},
   height = '100%'
 }) {
@@ -87,6 +89,25 @@ export default function MonacoEditor({
         model.onDidChangeContent(() => fetchDocumentSymbols(editor, monaco, onSymbolsChange));
       }
     }
+    if (onProblemsChange) {
+      const model = editor.getModel();
+      if (model) {
+        const uri = model.uri;
+        const update = () => {
+          const markers = monaco.editor.getModelMarkers({ resource: uri });
+          onProblemsChange(markers.map((m) => ({
+            path,
+            line: m.startLineNumber,
+            message: m.message,
+            severity: m.severity === monaco.MarkerSeverity.Error ? 'error' : m.severity === monaco.MarkerSeverity.Warning ? 'warning' : 'info'
+          })));
+        };
+        const disposable = monaco.editor.onDidChangeMarkers((resources) => {
+          if (resources.some((r) => r.toString() === uri.toString())) update();
+        });
+        update();
+      }
+    }
     if (onEditorReady) {
       onEditorReady({
         goToLine(lineNumber) {
@@ -100,10 +121,14 @@ export default function MonacoEditor({
           const selection = editorRef.current.getSelection();
           if (!selection) return;
           editorRef.current.executeEdits('insert-at-cursor', [{ range: selection, text }]);
+        },
+        formatDocument() {
+          if (!editorRef.current) return;
+          editorRef.current.getAction('editor.action.formatDocument')?.run();
         }
       });
     }
-  }, [onSave, onCursorChange, onSelectionChange, onSymbolsChange, onEditorReady]);
+  }, [onSave, onCursorChange, onSelectionChange, onSymbolsChange, onProblemsChange, onEditorReady, path]);
 
   const handleChange = useCallback((newValue) => {
     if (onChange) onChange(newValue ?? '');
