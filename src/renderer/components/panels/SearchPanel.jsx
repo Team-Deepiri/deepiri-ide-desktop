@@ -1,27 +1,46 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-export default function SearchPanel({ openTabs, activeTabContent, activeTabName, onSelectTab }) {
+export default function SearchPanel({
+  openTabs = [],
+  projectRoot,
+  onSelectTab,
+  onSelectWorkspaceResult,
+  focusRequest
+}) {
   const [query, setQuery] = useState('');
-  const [replace, setReplace] = useState('');
+  const [scope, setScope] = useState('open'); // 'open' | 'workspace'
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [wholeWord, setWholeWord] = useState(false);
   const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (focusRequest && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [focusRequest]);
+
+  function escapeRe(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
 
   const searchInOpenTabs = () => {
     if (!query.trim()) {
       setResults([]);
       return;
     }
-    const q = caseSensitive ? query : query.toLowerCase();
-    const reg = wholeWord ? new RegExp(`\\b${escapeRe(q)}\\b`, caseSensitive ? 'g' : 'gi') : new RegExp(escapeRe(q), caseSensitive ? 'g' : 'gi');
+    const q = escapeRe(query);
+    const re = wholeWord
+      ? new RegExp(`\\b${q}\\b`, caseSensitive ? 'g' : 'gi')
+      : new RegExp(q, caseSensitive ? 'g' : 'gi');
     const out = [];
     openTabs.forEach((tab) => {
       const content = tab.content || '';
       const lines = content.split('\n');
       lines.forEach((line, i) => {
         let match;
-        const lineToSearch = caseSensitive ? line : line.toLowerCase();
-        const re = wholeWord ? new RegExp(`\\b${escapeRe(q)}\\b`, caseSensitive ? 'g' : 'gi') : new RegExp(escapeRe(q), caseSensitive ? 'g' : 'gi');
         while ((match = re.exec(line)) !== null) {
           out.push({
             tabId: tab.id,
@@ -37,45 +56,77 @@ export default function SearchPanel({ openTabs, activeTabContent, activeTabName,
     setResults(out);
   };
 
-  function escapeRe(s) {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }
+  const searchInWorkspace = async () => {
+    if (!query.trim() || !projectRoot || !window.electronAPI?.searchInFolder) {
+      setResults([]);
+      return;
+    }
+    setSearching(true);
+    try {
+      const list = await window.electronAPI.searchInFolder(projectRoot, query, {
+        caseSensitive,
+        wholeWord
+      });
+      setResults(list);
+    } catch (e) {
+      console.error(e);
+      setResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const runSearch = () => {
+    if (scope === 'workspace') searchInWorkspace();
+    else searchInOpenTabs();
+  };
+
+  const handleResultClick = (r) => {
+    if (r.tabId != null && onSelectTab) {
+      onSelectTab(r.tabId, r.line);
+    } else if (r.path && onSelectWorkspaceResult) {
+      onSelectWorkspaceResult({ path: r.path, name: r.name, line: r.line });
+    }
+  };
 
   return (
     <div className="search-panel">
       <div className="search-header">
         <input
+          ref={inputRef}
           type="text"
           className="search-input"
-          placeholder="Search in open files"
+          placeholder={scope === 'workspace' ? 'Search in workspace (Ctrl+Shift+F)' : 'Search in open files'}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && searchInOpenTabs()}
+          onKeyDown={(e) => e.key === 'Enter' && runSearch()}
         />
-        <button type="button" className="btn-primary" onClick={searchInOpenTabs}>
-          Search
+        <button type="button" className="btn-primary" onClick={runSearch} disabled={searching}>
+          {searching ? 'Searching…' : 'Search'}
         </button>
       </div>
       <div className="search-options">
+        <span className="search-scope">
+          <label>
+            <input type="radio" checked={scope === 'open'} onChange={() => setScope('open')} />
+            Open files
+          </label>
+          <label>
+            <input type="radio" checked={scope === 'workspace'} onChange={() => setScope('workspace')} disabled={!projectRoot} />
+            Workspace
+          </label>
+        </span>
         <label>
-          <input
-            type="checkbox"
-            checked={caseSensitive}
-            onChange={(e) => setCaseSensitive(e.target.checked)}
-          />
+          <input type="checkbox" checked={caseSensitive} onChange={(e) => setCaseSensitive(e.target.checked)} />
           Match case
         </label>
         <label>
-          <input
-            type="checkbox"
-            checked={wholeWord}
-            onChange={(e) => setWholeWord(e.target.checked)}
-          />
+          <input type="checkbox" checked={wholeWord} onChange={(e) => setWholeWord(e.target.checked)} />
           Whole word
         </label>
       </div>
       <div className="search-results">
-        {results.length === 0 && query && (
+        {results.length === 0 && query && !searching && (
           <div className="search-no-results">No results</div>
         )}
         {results.length > 0 && (
@@ -83,9 +134,9 @@ export default function SearchPanel({ openTabs, activeTabContent, activeTabName,
         )}
         {results.slice(0, 200).map((r, i) => (
           <div
-            key={`${r.tabId}-${r.line}-${i}`}
+            key={r.tabId ? `${r.tabId}-${r.line}-${i}` : `${r.path}-${r.line}-${i}`}
             className="search-result-item"
-            onClick={() => onSelectTab && onSelectTab(r.tabId, r.line)}
+            onClick={() => handleResultClick(r)}
           >
             <span className="result-file">{r.name}:{r.line}</span>
             <span className="result-preview">{r.text}</span>

@@ -401,6 +401,7 @@ const App = () => {
         <div 
           className={`activity-item ${currentView === 'explorer' ? 'active' : ''}`}
           onClick={() => switchView('explorer')}
+          title="Explorer"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
@@ -409,6 +410,7 @@ const App = () => {
         <div 
           className={`activity-item ${currentView === 'tasks' ? 'active' : ''}`}
           onClick={() => switchView('tasks')}
+          title="Tasks"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M9 11l3 3L22 4"/>

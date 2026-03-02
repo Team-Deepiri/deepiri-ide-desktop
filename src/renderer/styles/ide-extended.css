@@ -224,7 +224,9 @@
 .search-panel { display: flex; flex-direction: column; height: 100%; padding: 8px; }
 .search-header { display: flex; gap: 8px; margin-bottom: 8px; }
 .search-input { flex: 1; padding: 8px; background: #3c3c3c; border: 1px solid #454545; color: #fff; border-radius: 4px; }
-.search-options { display: flex; gap: 16px; margin-bottom: 8px; font-size: 12px; color: #888; }
+.search-options { display: flex; gap: 16px; margin-bottom: 8px; font-size: 12px; color: #888; flex-wrap: wrap; }
+.search-scope { display: flex; gap: 12px; }
+.search-scope label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
 .search-results { flex: 1; overflow: auto; }
 .search-result-item { padding: 6px 8px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #2d2d2d; }
 .search-result-item:hover { background: #2a2d2e; }
