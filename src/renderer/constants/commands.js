@@ -1,0 +1,55 @@
+/**
+ * Command palette and menu command definitions.
+ */
+export const COMMANDS = [
+  { id: 'create-anything', label: 'Create anything (launcher)', shortcut: 'Ctrl+Shift+N' },
+  { id: 'open-folder', label: 'Open Folder', shortcut: 'Ctrl+K Ctrl+O' },
+  { id: 'quick-open', label: 'Go to File…', shortcut: 'Ctrl+P' },
+  { id: 'new-file', label: 'New File', shortcut: 'Ctrl+N' },
+  { id: 'save', label: 'Save', shortcut: 'Ctrl+S' },
+  { id: 'toggle-sidebar', label: 'Toggle Primary Sidebar', shortcut: 'Ctrl+B' },
+  { id: 'toggle-panel', label: 'Toggle Panel (Terminal, Output, etc.)', shortcut: 'Ctrl+J' },
+  { id: 'toggle-terminal', label: 'Toggle Terminal' },
+  { id: 'toggle-tools', label: 'Open Tools panel' },
+  { id: 'toggle-output', label: 'Toggle Output' },
+  { id: 'toggle-debug-console', label: 'Debug Console' },
+  { id: 'toggle-ports', label: 'Ports' },
+  { id: 'toggle-problems', label: 'Toggle Problems' },
+  { id: 'toggle-ai', label: 'Toggle AI Chat (Ask AI)', shortcut: 'Click AI in status bar' },
+  { id: 'use-agent-default', label: 'Use agent: Deepiri Emotion (general)' },
+  { id: 'use-agent-code-reviewer', label: 'Use agent: Code Reviewer' },
+  { id: 'use-agent-documentation', label: 'Use agent: Documentation' },
+  { id: 'use-agent-refactor', label: 'Use agent: Refactoring Expert' },
+  { id: 'use-agent-explain', label: 'Use agent: Explain & Teach' },
+  { id: 'use-agent-test-writer', label: 'Use agent: Test Writer' },
+  { id: 'use-agent-security', label: 'Use agent: Security Advisor' },
+  { id: 'use-agent-pair-programmer', label: 'Use agent: Pair Programmer' },
+  { id: 'ask-ai-explain', label: 'Ask AI: Explain selection or file' },
+  { id: 'ask-ai-refactor', label: 'Ask AI: Refactor selection or file' },
+  { id: 'ask-ai-add-tests', label: 'Ask AI: Add tests for selection or file' },
+  { id: 'classify-selection', label: 'Classify selection (intent/domain)' },
+  { id: 'classify-and-ask-ai', label: 'Classify and ask AI' },
+  { id: 'command-palette', label: 'Command Palette', shortcut: 'Ctrl+Shift+P' },
+  { id: 'keybindings', label: 'Open Keyboard Shortcuts' },
+  { id: 'extensions', label: 'Open Extensions' },
+  { id: 'outline', label: 'Toggle Outline' },
+  { id: 'go-to-line', label: 'Go to Line…', shortcut: 'Ctrl+G' },
+  { id: 'go-to-symbol', label: 'Go to Symbol in Editor…', shortcut: 'Ctrl+Shift+O' },
+  { id: 'find-in-file', label: 'Find in File', shortcut: 'Ctrl+F' },
+  { id: 'replace-in-file', label: 'Replace in File', shortcut: 'Ctrl+H' },
+  { id: 'format-document', label: 'Format Document', shortcut: 'Alt+Shift+F' },
+  { id: 'run-preview', label: 'Run or preview current file' },
+  { id: 'focus-search', label: 'Focus Search in Files', shortcut: 'Ctrl+Shift+F' },
+  { id: 'open-visual', label: 'Open Visual canvas' },
+  { id: 'open-emotion', label: 'Open Emotion (AI partners)' },
+  { id: 'open-finetuning', label: 'Open Fine-tuning panel' },
+  { id: 'open-guide', label: "Open Guide (What's new)" },
+  { id: 'new-task', label: 'New Task' },
+  { id: 'settings', label: 'Open Settings' },
+  { id: 'api-models', label: 'Open API & Model' },
+  { id: 'about', label: 'About Deepiri Emotion' }
+];
+
+export function getCommandById(id) {
+  return COMMANDS.find((c) => c.id === id);
+}
