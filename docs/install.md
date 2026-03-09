@@ -62,6 +62,10 @@ You can run the full chain with one command, or run steps individually.
 
 Version `1.0.0` comes from `package.json` → `version`; change it there and rebuild to get new numbers in filenames.
 
+### What’s included in the desktop package
+
+The built installers include the full app: main process (`src/`), built renderer (`dist-renderer/`), assets, and the **extensions** folder (built-in integration manifests). The **Integrations** feature (Connect/Sync/Disconnect with GitHub, Notion, and the platform catalog) is fully packaged: the Integrations panel, credential storage in userData, and sync with GitHub/Notion APIs work in the installed app. No extra install step is required.
+
 ### Optional: run steps separately
 
 ```bash
@@ -116,6 +120,25 @@ npm run dev
 
 - **Requires:** `npm install` done once.
 - **Optional:** Backend services (see 2.5) for full features.
+
+### 2.2b Terminal CLI (optional)
+
+A **standalone terminal TUI** (no Electron) provides a Claude-style chat with the same AI backends and optional tools (read file, search, run command).
+
+```bash
+# Interactive CLI (must run in a real TTY)
+npm run cli
+
+# With a project directory (tools run in that folder)
+npm run cli -- /path/to/project
+
+# Development: auto-restart on file changes
+npm run cli:dev
+```
+
+- **Help / version:** `node cli/index.js --help` or `--version`.
+- **Config:** Env vars `OPENAI_API_KEY`, `AI_SERVICE_URL`, `OLLAMA_HOST`; or config file `.emotion-cli.json` (cwd) or `~/.config/deepiri-emotion/cli.json`.
+- **Tools:** Say e.g. "read file package.json", "search for openFile", "run npm test". See `cli/README.md` for details.
 
 ### 2.3 Running the built app (no install)
 
@@ -185,6 +208,7 @@ The app runs standalone; these are optional for tasks, AI, Cyrex UI, and Helox p
 |----------|--------|
 | **Only build installers** | `npm install` → `npm run build` (or `build:win` / `build:mac` / `build:linux`) |
 | **Develop the IDE** | `npm install` → Terminal 1: `npm run dev:renderer` → Terminal 2: `npm run dev` |
+| **Terminal CLI** | `npm run cli` (or `npm run cli -- /path/to/project`). Use `npm run cli:dev` for watch mode. |
 | **Use coding agent (API key)** | File → Settings → API & Model → pick OpenAI / Anthropic / Google → paste key → Save. Use AI Chat or Emotion. |
 | **Use coding agent (no key)** | Run **Cyrex** (e.g. at `http://localhost:8000`) or **Ollama** (e.g. at `http://localhost:11434`). The app auto-detects when either is running and uses it; in Settings → API & Model choose Cyrex or Local → Ollama if needed. |
 | **Use installers on another machine** | Copy `.exe` / `.deb` / `.AppImage` / `.dmg` / `.pkg` from `dist/` and install/run per table in Part 1 |
@@ -198,3 +222,4 @@ The app runs standalone; these are optional for tasks, AI, Cyrex UI, and Helox p
 - **Setup dev:** `npm install`, then `npm run dev:renderer` + `npm run dev` in two terminals.
 - **Coding agent:** File → Settings → API & Model. Use an **API key** (OpenAI / Anthropic / Google) or **no key** with **Cyrex runtime** or **Ollama** (see 2.4). The app auto-detects when Cyrex or Ollama is running. The app **auto-detects** when Cyrex or Ollama is running and uses it.
 - **Config (optional):** `.env` or env vars for `API_URL`, `AI_SERVICE_URL`, `CYREX_INTERFACE_URL`, `HELOX_PATH`, `PYAGENT_API_KEY`.
+- **Terminal CLI:** `npm run cli` (TTY required). Pass a directory to run tools in that workspace: `npm run cli -- /path/to/project`. See `cli/README.md`.

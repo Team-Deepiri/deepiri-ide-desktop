@@ -26,8 +26,10 @@ After install, open **Deepiri Emotion** like any other app. Open a folder to sta
 - **Quick Open & Command Palette** — Ctrl+P (go to file), Ctrl+Shift+P (commands).
 - **Welcome** — Recent folders, quick actions, getting started.
 - **Terminal** — Integrated panel with project-root cwd and streamed output.
+- **Terminal CLI** — Standalone TUI (`npm run cli`): AI chat with streaming (OpenAI/Ollama/Cyrex), tools (read file, search, run command), optional workspace dir. See [cli/README.md](cli/README.md).
 - **Cyrex & Helox** — Tabs for Cyrex UI (when running) and Helox pipeline runs; optional backend services.
 - **Tasks, Challenges, Gamification** — Platform API integration; mission cards and progress tracking.
+- **Local data** — Settings and chat history stored locally (userData + SQLite); no account required. See [docs/local-storage.md](docs/local-storage.md).
 
 ---
 
@@ -61,6 +63,13 @@ npm run dev:renderer
 npm run dev
 ```
 
+### Launch with a folder or file
+
+```bash
+npm run dev -- -- /path/to/folder    # Open app with that folder as project root
+npm run dev -- -- /path/to/file      # Open app and open that file in a tab
+```
+
 ### Build installers
 
 ```bash
@@ -79,27 +88,20 @@ Output is in **`dist/`**. See **[docs/install.md](docs/install.md)** for exact f
 ```
 deepiri-emotion-desktop/
 ├── src/
-│   ├── main.js              # Electron main process (IPC, window, shell, file system)
-│   ├── preload.js           # Bridge (window.electronAPI)
-│   └── renderer/            # React UI
-│       ├── main.jsx         # Entry (providers + App)
-│       ├── App.jsx           # Shell (activity bar, sidebar, editor, panels)
-│       ├── components/      # Editor, workspace, panels, UI
-│       ├── features/        # Quick open, AI chat, diff view
-│       ├── context/         # Theme, notifications
-│       ├── hooks/            # Keybindings, session
-│       ├── services/        # AI, tasks, challenges, recent
-│       ├── styles/
-│       └── integrations/
+│   ├── main.js              # Electron entry
+│   ├── main/                 # Bootstrap, orchestrator, services (workspace, file, AI, DB, …)
+│   ├── preload.js            # Bridge (window.electronAPI)
+│   ├── shared/               # IPC channel names, constants
+│   └── renderer/             # React UI (components, features, context, hooks, services)
+├── cli/                      # Terminal TUI (npm run cli): event bus, agent, tools, Ink UI
+├── extensions/               # Built-in extension manifests (cyrex, helox, github, notion)
 ├── scripts/
-│   └── generate-icons.cjs   # Build icon.ico / icon.icns from icon.png
-├── assets/                  # icon.png (256×256); generated .ico, .icns
-├── docs/                    # Install, architecture, refactoring
-├── .env.example             # Optional env (API_URL, AI_SERVICE_URL, etc.)
+├── assets/
+├── docs/                     # Install, architecture, local-storage, cli plan, setup
+├── .vscode/                  # Launch configs, tasks
+├── .env.example
 ├── .editorconfig
-├── .gitignore
 ├── .nvmrc
-├── LICENSE
 ├── package.json
 └── vite.config.js
 ```
@@ -111,9 +113,13 @@ deepiri-emotion-desktop/
 | Doc | Content |
 |-----|---------|
 | **[docs/setup.md](docs/setup.md)** | **Full setup guide** — prerequisites, clone, dev run, build, optional backends, env, Tauri, verify. |
-| **[docs/install.md](docs/install.md)** | Installers, dev setup, optional backends (Platform API, Cyrex, Helox). |
-| **[docs/architecture.md](docs/architecture.md)** | Tech stack, main vs renderer, security, packaging. |
+| **[docs/install.md](docs/install.md)** | Installers, dev setup, optional backends, Terminal CLI (2.2b). |
+| **[docs/architecture.md](docs/architecture.md)** | Tech stack, main vs renderer, optional services, security, packaging. |
+| **[docs/local-storage.md](docs/local-storage.md)** | Where user data is stored (userData, localStorage, SQLite); when to add a DB. |
+| **[docs/cli-tui-plan.md](docs/cli-tui-plan.md)** | CLI TUI architecture and implementation phases. |
 | **[docs/refactoring.md](docs/refactoring.md)** | Plan for merging Cyrex UI and Helox into the IDE. |
+| **[AGENTS.md](AGENTS.md)** | Instructions for AI agents (run, structure, IPC, tests). |
+| **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to contribute; SECURITY: [SECURITY.md](SECURITY.md). |
 
 ---
 
@@ -136,15 +142,18 @@ The app runs without `.env`; these are for custom endpoints and keys.
 |--------|---------|
 | `npm run dev` | Run Electron in dev mode (use with `npm run dev:renderer` in another terminal). |
 | `npm run dev:renderer` | Start Vite dev server (HMR) for the renderer. |
+| `npm run cli` | Run Terminal CLI TUI (interactive; requires TTY). `npm run cli -- /path` to set workspace. |
+| `npm run cli:dev` | Run CLI with `--watch` (auto-restart on file changes). |
 | `npm run build` | Icons + renderer + electron-builder for current OS. |
 | `npm run build:icons` | Regenerate `assets/icon.ico` and `assets/icon.icns` from `assets/icon.png`. |
 | `npm run build:renderer` | Vite production build → `dist-renderer/`. |
 | `npm run build:win` / `build:mac` / `build:linux` | Build installers for that platform. |
-| `npm test` | Run unit tests (Vitest). |
+| `npm test` | Run unit tests (Vitest: renderer + Node/main + CLI). |
 | `npm run test:watch` | Run tests in watch mode. |
 | `npm run test:coverage` | Run tests with coverage report. |
-| `npm run lint` | Lint source with ESLint. |
+| `npm run lint` | Lint `src` and `cli` with ESLint. |
 | `npm run lint:fix` | Lint and fix what can be auto-fixed. |
+| `npm run check` | Lint + test + build renderer (CI-style full check). |
 
 ---
 
