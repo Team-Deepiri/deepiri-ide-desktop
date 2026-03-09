@@ -26,12 +26,14 @@
     "build:win": "npm run build:icons && npm run build:renderer && electron-builder --win",
     "build:mac": "npm run build:icons && npm run build:renderer && electron-builder --mac",
     "build:linux": "npm run build:icons && npm run build:renderer && electron-builder --linux",
-    "test": "vitest run",
+    "test": "vitest run && vitest run --config vitest.config.node.js",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "check": "npm run lint && npm test && npm run build:renderer"
+    "check": "npm run lint && npm test && npm run build:renderer",
+    "setup": "bash scripts/setup-full.sh",
+    "setup:install": "bash scripts/setup-full.sh --install-only"
   },
   "keywords": [
     "productivity",
