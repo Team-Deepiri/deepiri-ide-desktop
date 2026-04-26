@@ -1,0 +1,12 @@
+# Exclude generated/build/runtime artifact paths for this repository.
+paths-ignore:
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/build/**'
+  - '**/coverage/**'
+  - '**/logs/**'
+  - '**/*.min.js'
+  - '**/src-tauri/target/**'
+  - '**/.vite/**'
+  - '**/.turbo/**'
+  - '**/.cache/**'
