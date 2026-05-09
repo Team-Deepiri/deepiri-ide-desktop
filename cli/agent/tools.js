@@ -1,8 +1,7 @@
 /**
  * CLI tools: read_file, search, run_command. Used by runner to emit TOOL_START/TOOL_END.
  */
-import { readFile } from 'fs/promises';
-import { readdir } from 'fs/promises';
+import { readFile, readdir, stat } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { spawn } from 'child_process';
@@ -64,6 +63,45 @@ export async function searchTool(query, dir = DEFAULT_CWD, limit = 20) {
 }
 
 /**
+ * List files and folders in a directory.
+ */
+export async function listFilesTool(dirPath = '.', cwd = DEFAULT_CWD) {
+  const resolved = dirPath.startsWith('/') ? dirPath : join(cwd, dirPath);
+
+  if (!existsSync(resolved)) {
+    return { error: `Directory not found: ${resolved}` };
+  }
+
+  let entries;
+  try {
+    entries = await readdir(resolved, { withFileTypes: true });
+  } catch (err) {
+    return { error: err.message };
+  }
+
+  const items = await Promise.all(
+    entries
+      .filter((entry) => !entry.name.startsWith('.'))
+      .map(async (entry) => {
+        const fullPath = join(resolved, entry.name);
+        const info = await stat(fullPath);
+
+        return {
+          name: entry.name,
+          type: entry.isDirectory() ? 'directory' : 'file',
+          size: entry.isFile() ? info.size : null
+        };
+      })
+  );
+
+  return {
+    path: resolved,
+    count: items.length,
+    items
+  };
+}
+
+/**
  * Run a shell command (cwd), timeout 30s. Returns { stdout, stderr, exitCode, error? }.
  */
 export function runCommandTool(command, cwd = DEFAULT_CWD) {
@@ -103,9 +141,25 @@ export function runCommandTool(command, cwd = DEFAULT_CWD) {
  * Parse user message for simple tool intent. Returns { tool, args } or null.
  */
 export function parseToolIntent(text) {
+  // Try parsing structured JSON tool call first
+  try {
+    const parsed = JSON.parse(text.trim());
+
+    if (parsed.tool && parsed.args) {
+      return {
+        tool: parsed.tool,
+        args: parsed.args
+      };
+    }
+  } catch {
+    // Not JSON, continue to regex parsing
+  }
   const raw = (text || '').trim();
   const t = raw.toLowerCase();
-  const readMatch = t.match(/read\s+file\s+(.+)/) || t.match(/read\s+(.+\.\w+)/);
+  // const readMatch = t.match(/read\s+file\s+(.+)/) || t.match(/read\s+(.+\.\w+)/);
+  const readMatch =
+  t.match(/read\s+file\s+([^\s,]+)/) ||
+  t.match(/read\s+([^\s,]+\.\w+)/);
   if (readMatch) {
     return { tool: 'read_file', args: { filePath: readMatch[1].trim() } };
   }
@@ -113,9 +167,45 @@ export function parseToolIntent(text) {
   if (searchMatch) {
     return { tool: 'search', args: { query: searchMatch[1].trim() } };
   }
+
+  const listFilesMatch =
+  t.match(/list\s+files\s+(.+)/) ||
+  t.match(/list\s+(.+)/);
+
+  if (listFilesMatch) {
+    return {
+      tool: 'list_files',
+      args: { dirPath: listFilesMatch[1].trim() }
+    };
+  }
+
   const runMatch = t.match(/^run\s+(.+)/);
   if (runMatch) {
     return { tool: 'run_command', args: { command: runMatch[1].trim() } };
   }
   return null;
+}
+
+/**
+ * Execute a tool by name.
+ * Used for future agent loop (not active yet).
+ */
+export async function executeTool(tool, args = {}, cwd = DEFAULT_CWD) {
+  if (tool === 'read_file') {
+    return readFileTool(args.filePath, cwd);
+  }
+
+  if (tool === 'search') {
+    return searchTool(args.query, cwd);
+  }
+
+  if (tool === 'list_files') {
+    return listFilesTool(args.dirPath || '.', cwd);
+  }
+
+  if (tool === 'run_command') {
+    return runCommandTool(args.command, cwd);
+  }
+
+  return { error: `Unknown tool: ${tool}` };
 }
