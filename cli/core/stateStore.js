@@ -10,7 +10,8 @@ export const INITIAL_STATE = {
   steps: [],
   spinnerFrame: 0,
   inputBuffer: '',
-  error: null
+  error: null,
+  teachMode: false
 };
 
 export const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
