@@ -11,7 +11,20 @@ import { createSimplePlan } from './planner.js';
  * @param {Record<string,unknown>} [config] - CLI config (provider, keys, URLs)
  */
 export function attachAgentRunner(bus, config = {}) {
+  let teachMode = config.teachMode ?? false;
+
   bus.on(EVENTS.USER_MESSAGE, async ({ text }) => {
+    if (text?.trim() === '/teach') {
+      teachMode = !teachMode;
+      bus.emit(EVENTS.TEACH_MODE_CHANGED, { teachMode });
+      const msg = teachMode
+        ? '📖 Teach mode ON — I will explain my reasoning, code concepts, and best practices as I work.'
+        : 'Teach mode OFF.';
+      bus.emit(EVENTS.LLM_TOKEN, { token: msg });
+      bus.emit(EVENTS.LLM_DONE, {});
+      return;
+    }
+
     let steps = 0;
     const MAX_STEPS = 5;
     if (!text?.trim()) return;
