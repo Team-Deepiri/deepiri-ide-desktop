@@ -14,7 +14,8 @@ export const EVENTS = {
   TOOL_START: 'TOOL_START',
   TOOL_END: 'TOOL_END',
   SPINNER_TICK: 'SPINNER_TICK',
-  KEY: 'KEY'
+  KEY: 'KEY',
+  TEACH_MODE_CHANGED: 'TEACH_MODE_CHANGED'
 };
 
 export function createEventBus() {
